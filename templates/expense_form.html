@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Add Expense</title>
+  <!-- Link to your CSS file -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='expense_form.css') }}">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Font (Recommended) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="mobile-wrapper">
+  <main class="app-content">
+    <div class="app-page active">
+
+      <!-- HEADER -->
+      <header class="page-header">
+        <a href="{{ url_for('dashboard') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
+        <div class="header-content">
+          <h1>Add Expense</h1>
+          <p>Record a new transaction</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <form action="{{ url_for('submit_expense') }}" method="POST" class="expense-form">
+
+          <!-- AMOUNT -->
+          <div class="form-group">
+            <label><i class="fas fa-money-bill-wave form-icon"></i> Amount</label>
+            <div class="amount-input-wrapper">
+              <span>₱</span>
+              <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="form-group">
+            <label><i class="fas fa-align-left form-icon"></i> Description</label>
+            <input type="text" name="description" placeholder="e.g., Coffee with friends" maxlength="20">
+          </div>
+
+          <!-- CATEGORY DROPDOWN -->
+          <div class="form-group dropdown">
+            <label><i class="fas fa-tags form-icon"></i> Category</label>
+            <div class="dropdown-btn">Select Category</div>
+            <input type="hidden" name="categories" required>
+            <div class="dropdown-content-wrapper">
+              <!-- NEW: Custom input field added -->
+              <div class="custom-input-area">
+                <input type="text" class="custom-input" placeholder="Or type your own..." maxlength="20">
+                <button type="button" class="custom-set-btn">Set</button>
+              </div>
+              <div class="dropdown-content">
+                <div class="dropdown-item" data-value="Food">Food</div>
+                <div class="dropdown-item" data-value="Transport">Transport</div>
+                <div class="dropdown-item" data-value="Shopping">Shopping</div>
+                <div class="dropdown-item" data-value="Utilities">Utilities</div>
+                <div class="dropdown-item" data-value="Health">Health</div>
+                <div class="dropdown-item" data-value="Home">Home</div>
+                <div class="dropdown-item" data-value="Others">Others</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT METHOD DROPDOWN -->
+          <div class="form-group dropdown">
+            <label><i class="fas fa-credit-card form-icon"></i> Payment Method</label>
+            <div class="dropdown-btn">Select Payment</div>
+            <input type="hidden" name="payment_method" required>
+            <div class="dropdown-content-wrapper">
+              <!-- NEW: Custom input field added -->
+              <div class="custom-input-area">
+                <input type="text" class="custom-input" placeholder="Or type your own..." maxlength="20">
+                <button type="button" class="custom-set-btn">Set</button>
+              </div>
+              <div class="menu-container">
+                  <!-- Level 1 Menu -->
+                  <div class="menu-level active" data-menu-id="main">
+                    <div class="dropdown-item has-submenu" data-submenu-target="cash-submenu">Cash <i class="fas fa-chevron-right"></i></div>
+                    <div class="dropdown-item has-submenu" data-submenu-target="online-wallet-submenu">Online Wallet <i class="fas fa-chevron-right"></i></div>
+                    <div class="dropdown-item has-submenu" data-submenu-target="debit-card-submenu">Debit Card <i class="fas fa-chevron-right"></i></div>
+                    <div class="dropdown-item has-submenu" data-submenu-target="credit-card-submenu">Credit Card <i class="fas fa-chevron-right"></i></div>
+                    <div class="dropdown-item has-submenu" data-submenu-target="borrowed-submenu">Borrowed Money <i class="fas fa-chevron-right"></i></div>
+                  </div>
+                  
+                  <!-- Level 2 Submenus -->
+                  <div class="menu-level" id="cash-submenu"><div class="submenu-header"><button type="button" class="submenu-back-btn" data-parent-menu="main"><i class="fas fa-arrow-left"></i></button><h3>Cash</h3></div><div class="dropdown-item" data-value="Cash (Wallet)">Wallet</div><div class="dropdown-item" data-value="Cash (Petty Cash)">Petty Cash</div><div class="dropdown-item" data-value="Cash (Savings Jar)">Savings Jar</div><div class="dropdown-item" data-value="Cash (Emergency Fund)">Emergency Fund</div></div>
+                  <div class="menu-level" id="online-wallet-submenu"><div class="submenu-header"><button type="button" class="submenu-back-btn" data-parent-menu="main"><i class="fas fa-arrow-left"></i></button><h3>Online Wallet</h3></div><div class="dropdown-item" data-value="GCash Maya">Maya</div><div class="dropdown-item" data-value="GCash PayPal">PayPal</div><div class="dropdown-item" data-value="GCash Credit">GCash Credit</div><div class="dropdown-item" data-value="GCash Balance">GCash Balance</div></div>
+                  <div class="menu-level" id="debit-card-submenu"><div class="submenu-header"><button type="button" class="submenu-back-btn" data-parent-menu="main"><i class="fas fa-arrow-left"></i></button><h3>Debit Card</h3></div><div class="dropdown-item" data-value="Debit Card - AUB">AUB</div><div class="dropdown-item" data-value="Debit Card - BPI">BPI</div><div class="dropdown-item" data-value="Debit Card - BDO">BDO</div><div class="dropdown-item" data-value="Debit Card - GoTyme">GoTyme</div><div class="dropdown-item" data-value="Debit Card - LandBank">LandBank</div><div class="dropdown-item" data-value="Debit Card - UnionBank">UnionBank</div></div>
+                  <div class="menu-level" id="credit-card-submenu"><div class="submenu-header"><button type="button" class="submenu-back-btn" data-parent-menu="main"><i class="fas fa-arrow-left"></i></button><h3>Credit Card</h3></div><div class="dropdown-item" data-value="Credit Card - AUB">AUB</div><div class="dropdown-item" data-value="Credit Card - BPI">BPI</div><div class="dropdown-item" data-value="Credit Card - BDO">BDO</div><div class="dropdown-item" data-value="Credit Card - Metrobank">Metrobank</div><div class="dropdown-item" data-value="Credit Card - RCBC">RCBC</div><div class="dropdown-item" data-value="Credit Card - Security Bank">Security Bank</div></div>
+                  <div class="menu-level" id="borrowed-submenu"><div class="submenu-header"><button type="button" class="submenu-back-btn" data-parent-menu="main"><i class="fas fa-arrow-left"></i></button><h3>Borrowed Money</h3></div><div class="dropdown-item" data-value="Borrowed Money (Family)">Family</div><div class="dropdown-item" data-value="Borrowed Money (Friends)">Friends</div><div class="dropdown-item" data-value="Borrowed Money (Loan Apps)">Loan Apps</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DATE -->
+          <div class="form-group">
+            <label><i class="fas fa-calendar-alt form-icon"></i> Date</label>
+            <input type="date" name="date" required>
+          </div>
+
+          <!-- SUBMIT -->
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-plus"></i> Add Expense
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const allDropdowns = document.querySelectorAll('.dropdown');
+    
+    // Function to close all dropdowns, optionally excluding one
+    const closeAllDropdowns = (exceptThisOne = null) => { 
+        allDropdowns.forEach(dropdown => { 
+            if (dropdown !== exceptThisOne) { 
+                dropdown.classList.remove('open'); 
+            } 
+        }); 
+    };
+
+    allDropdowns.forEach(dropdown => {
+        const btn = dropdown.querySelector('.dropdown-btn');
+        const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+        const contentWrapper = dropdown.querySelector('.dropdown-content-wrapper');
+        const menuContainer = dropdown.querySelector('.menu-container');
+
+        // NEW: References to the custom input elements
+        const customInputArea = contentWrapper.querySelector('.custom-input-area');
+        const customInput = customInputArea.querySelector('.custom-input');
+        const customSetBtn = customInputArea.querySelector('.custom-set-btn');
+
+        // Reset multi-level menus if the dropdown closes
+        dropdown.addEventListener('transitionend', () => { 
+            if (!dropdown.classList.contains('open') && menuContainer) { 
+                menuContainer.querySelectorAll('.menu-level').forEach(level => level.classList.remove('active')); 
+                menuContainer.querySelector('[data-menu-id="main"]').classList.add('active'); 
+            } 
+        });
+
+        // Toggle the dropdown when the main button is clicked
+        btn.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            const isOpen = dropdown.classList.contains('open'); 
+            closeAllDropdowns(); 
+            if (!isOpen) { 
+                dropdown.classList.add('open'); 
+            } 
+        });
+        
+        // NEW: Handle clicks within the custom input area
+        customInputArea.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevents the dropdown from closing when clicking here
+        });
+
+        // NEW: Handle the "Set" button for custom input
+        customSetBtn.addEventListener('click', () => {
+            const customValue = customInput.value.trim();
+            if (customValue) {
+                btn.textContent = customValue; // Update button text
+                hiddenInput.value = customValue; // Update hidden input value
+                customInput.value = ''; // Clear the custom input
+                closeAllDropdowns();
+            }
+        });
+
+        // Handle clicks on predefined dropdown items
+        if (menuContainer) {
+            // Multi-level menu logic
+            menuContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = e.target.closest('.dropdown-item');
+                const backBtn = e.target.closest('.submenu-back-btn');
+                
+                if (item) {
+                    if (item.classList.contains('has-submenu')) {
+                        const targetId = item.dataset.submenuTarget;
+                        const currentMenu = item.closest('.menu-level');
+                        const targetMenu = menuContainer.querySelector(`#${targetId}`);
+                        if (currentMenu && targetMenu) { 
+                            currentMenu.classList.remove('active'); 
+                            targetMenu.classList.add('active'); 
+                        }
+                    } else { 
+                        const value = item.dataset.value; 
+                        btn.textContent = value; 
+                        hiddenInput.value = value; 
+                        closeAllDropdowns(); 
+                    }
+                } else if (backBtn) {
+                    const currentMenu = backBtn.closest('.menu-level');
+                    const parentMenuId = backBtn.dataset.parentMenu;
+                    const parentMenu = menuContainer.querySelector(`[data-menu-id="${parentMenuId}"]`);
+                    if (currentMenu && parentMenu) { 
+                        currentMenu.classList.remove('active'); 
+                        parentMenu.classList.add('active'); 
+                    }
+                }
+            });
+        } else {
+            // Simple dropdown logic (for Category)
+            dropdown.querySelectorAll('.dropdown-item').forEach(item => { 
+                item.addEventListener('click', (e) => { 
+                    e.stopPropagation(); 
+                    const value = item.dataset.value; 
+                    btn.textContent = value; 
+                    hiddenInput.value = value; 
+                    closeAllDropdowns(); 
+                }); 
+            });
+        }
+    });
+    
+    // Close all dropdowns if clicking anywhere else on the page
+    document.addEventListener('click', (e) => { 
+        if (!e.target.closest('.dropdown')) { 
+            closeAllDropdowns(); 
+        } 
+    });
+    
+    // Set the initial date for the date input
+    const setInitialDate = () => {
+        const dateInput = document.querySelector('input[type="date"]');
+        if (!dateInput) return;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+    };
+    setInitialDate();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Expense Dashboard</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="toast-container" id="toast-container"></div>
+    <div id="flash-messages" data-messages='{{ get_flashed_messages(with_categories=true)|tojson }}'></div>
+
+    <div class="mobile-wrapper">
+        <main class="app-content">
+            <!-- PAGE 1: DASHBOARD -->
+            <div id="page-dashboard" class="app-page active">
+                <header class="page-header"><div class="header-content"><h1>EXTRACK</h1><p>Welcome back, here's your financial overview.</p></div></header>
+                <div class="page-content">
+                    <div class="info-card-grid">
+                        <div class="info-card"><i class="fas fa-wallet"></i><h3>Total Expenses</h3><p class="currency-text">{{ format_large_number(total_expenses) }}</p></div>
+                        <div class="info-card"><i class="fas fa-list-ol"></i><h3>Categories Used</h3><p>{{ num_categories }}</p></div>
+                        <div class="info-card"><i class="fas fa-fire"></i><h3>Longest Streak</h3><p>{{ longest_streak }} days</p></div>
+                        <div class="info-card"><i class="fas fa-chart-line"></i><h3>Daily Average</h3><p class="currency-text">{{ format_large_number(avg_daily_expense) }}</p></div>
+                    </div>
+                    <div class="content-card">
+                        <h2>Detailed Breakdown</h2>
+                        <div class="breakdown-section">
+                            <h3>Current Totals</h3>
+                            <p><span>Today</span> <strong class="currency-text">{{ format_large_number(total_today_expenses) }}</strong></p>
+                            <p><span>This Week</span> <strong class="currency-text">{{ format_large_number(total_this_week_expenses) }}</strong></p>
+                            <p><span>This Month</span> <strong class="currency-text">{{ format_large_number(total_this_month_expenses) }}</strong></p>
+                            <p><span>This Year</span> <strong class="currency-text">{{ format_large_number(total_this_year_expenses) }}</strong></p>
+                        </div>
+                        <div class="breakdown-section">
+                            <h3>Historical Averages</h3>
+                            <p><span>Per Day</span> <strong class="currency-text">{{ format_large_number(avg_expense_per_day) }}</strong></p>
+                            <p><span>Per Week</span> <strong class="currency-text">{{ format_large_number(avg_expense_per_week) }}</strong></p>
+                            <p><span>Per Month</span> <strong class="currency-text">{{ format_large_number(avg_expense_per_month) }}</strong></p>
+                            <p><span>Per Year</span> <strong class="currency-text">{{ format_large_number(avg_expense_per_year) }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 2: SUMMARY -->
+            <div id="page-summary" class="app-page">
+                <header class="page-header"><div class="header-content"><h1>Visual Summary</h1><p>An overview of your spending habits.</p></div></header>
+                <div class="page-content">
+                    <div class="content-card"><h2>By Category</h2><div class="summary-chart-container"><canvas id="categoryChart"></canvas></div><div id="categoryChartLegend" class="chart-legend"></div></div>
+                    <div class="content-card"><h2>By Payment Method</h2><div class="summary-chart-container"><canvas id="paymentMethodChart"></canvas></div><div id="paymentMethodChartLegend" class="chart-legend"></div></div>
+                </div>
+            </div>
+
+            <!-- PAGE 3: HISTORY -->
+            <div id="page-history" class="app-page">
+                <header class="page-header"><div class="header-content"><h1>Transaction History</h1><p>A detailed list of your recent expenses.</p></div></header>
+                <div class="page-content-full">
+                    <div class="transaction-list">
+                        {% for expense in expenses %}
+                        <div class="transaction-item" data-id="{{ expense.id }}" data-amount="{{ expense.amount }}" data-category="{{ expense.categories }}" data-desc="{{ expense.description }}" data-date="{{ expense.date.strftime('%Y-%m-%d') }}">
+                            <div class="transaction-icon" data-category="{{ expense.categories }}"></div>
+                            <div class="transaction-details"><h3>{{ expense.categories }}</h3><span>{{ expense.description }}</span></div>
+                            <div class="transaction-amount"><p class="currency-text">-{{ format_large_number(expense.amount) }}</p><span>{{ expense.date.strftime('%b %d, %Y') }}</span></div>
+                        </div>
+                        {% else %}
+                        <div class="content-card empty-history"><p>No expenses recorded yet.</p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: SETTINGS -->
+            <div id="page-settings" class="app-page">
+                <header class="page-header"><div class="header-content"><h1>Settings</h1><p>Customize your experience.</p></div></header>
+                <div class="page-content">
+                    <div class="content-card">
+                        <h2>Data Management</h2>
+                        <div class="settings-group">
+                            <div class="setting-item">
+                                <div class="setting-info"><h4>Export Data</h4><p>Download your history as CSV.</p></div>
+                                <button id="btn-export-csv" class="setting-action-btn"><i class="fas fa-file-csv"></i> Download</button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info"><h4>Reset App</h4><p style="color:var(--accent-red)">Delete all transactions.</p></div>
+                                <button id="btn-delete-all" class="setting-action-btn danger"><i class="fas fa-trash-alt"></i> Delete All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content-card app-footer">
+                        <i class="fas fa-leaf"></i><p><strong>EXTRACK</strong> v1.2.0</p><p style="font-size: 0.8rem;">Designed for Personal Finance</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button data-page="page-dashboard" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></button>
+            <button data-page="page-summary" class="nav-item"><i class="fas fa-chart-pie"></i><span>Summary</span></button>
+            <a href="{{ url_for('add_expense_page') }}" class="nav-item-add"><i class="fas fa-plus"></i></a>
+            <button data-page="page-history" class="nav-item"><i class="fas fa-receipt"></i><span>History</span></button>
+            <button data-page="page-settings" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></button>
+        </nav>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="actions-modal">
+        <div class="modal-content">
+            <div class="modal-actions">
+                <a href="#" id="modal-edit-btn" class="modal-action-edit"><i class="fas fa-pen"></i> Edit Transaction</a>
+                <a href="#" id="modal-delete-btn" class="modal-action-delete"><i class="fas fa-trash"></i> Delete Transaction</a>
+                <button id="modal-cancel-btn" class="modal-action-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DEFAULT_CURRENCY = '₱';
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            const pages = document.querySelectorAll('.app-page');
+            const modal = document.getElementById('actions-modal');
+            const editBtn = document.getElementById('modal-edit-btn');
+            const deleteBtn = document.getElementById('modal-delete-btn');
+            
+            const showToast = (message, type = 'success') => {
+                const toast = document.createElement('div');
+                toast.classList.add('toast', type);
+                toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+                document.getElementById('toast-container').appendChild(toast);
+                toast.addEventListener('animationend', (e) => { if(e.animationName === 'fadeOutToast') toast.remove(); });
+            };
+
+            const format_large_number_js = (num) => {
+                if (typeof num !== 'number') return num;
+                if (Math.abs(num) < 1000000) return `${DEFAULT_CURRENCY}${num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                const i = Math.floor(Math.log10(Math.abs(num)) / 3);
+                const val = num / Math.pow(1000, i);
+                return `${DEFAULT_CURRENCY}${(Math.abs(val) >= 10 ? val.toFixed(1) : val.toFixed(2))}${['', 'K', 'M', 'B', 'T'][i]}`;
+            };
+
+            const createCustomLegend = (chart, id) => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                container.innerHTML = '';
+                chart.data.labels.forEach((label, i) => {
+                    container.innerHTML += `<div class="legend-item"><div class="legend-info"><span class="legend-color-box" style="background-color: ${chart.data.datasets[0].backgroundColor[i]}"></span><span class="legend-label">${label}</span></div><strong class="legend-value">${format_large_number_js(chart.data.datasets[0].data[i])}</strong></div>`;
+                });
+            };
+
+            // Flash Messages
+            try {
+                const msgs = JSON.parse(document.getElementById('flash-messages').getAttribute('data-messages'));
+                if(msgs) msgs.forEach(m => showToast(m[1], m[0]));
+            } catch(e) {}
+
+            // Navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tid = item.getAttribute('data-page');
+                    if (!tid) return;
+                    document.querySelector('.app-content').scrollTop = 0;
+                    pages.forEach(p => p.classList.remove('active'));
+                    document.getElementById(tid).classList.add('active');
+                    navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                });
+            });
+
+            // Icons
+            const icons = {'Food':'fa-utensils','Transport':'fa-car-side','Shopping':'fa-shopping-bag','Utilities':'fa-bolt','Health':'fa-heartbeat','Home':'fa-home','Default':'fa-dollar-sign'};
+            document.querySelectorAll('.transaction-icon').forEach(el => {
+                el.innerHTML = `<i class="fas ${icons[el.getAttribute('data-category').trim()] || icons['Default']}"></i>`;
+            });
+
+            // Modal
+            let pressTimer;
+            const showModal = (id) => { editBtn.href = `/edit/${id}`; deleteBtn.href = `/delete/${id}`; modal.classList.add('active'); };
+            document.querySelectorAll('.transaction-item').forEach(item => {
+                const id = item.dataset.id;
+                item.addEventListener('touchstart', () => pressTimer = setTimeout(() => showModal(id), 500));
+                ['touchend', 'touchmove'].forEach(evt => item.addEventListener(evt, () => clearTimeout(pressTimer)));
+                item.addEventListener('contextmenu', (e) => { e.preventDefault(); showModal(id); });
+            });
+            document.getElementById('modal-cancel-btn').addEventListener('click', () => modal.classList.remove('active'));
+            modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
+
+            // CSV Export
+            const btnExport = document.getElementById('btn-export-csv');
+            if(btnExport) {
+                btnExport.addEventListener('click', () => {
+                    const rows = document.querySelectorAll('.transaction-item');
+                    if(!rows.length) return showToast("No data to export", "error");
+                    let csv = "data:text/csv;charset=utf-8,Date,Category,Description,Amount\n";
+                    rows.forEach(r => csv += `${r.dataset.date},${r.dataset.category},${r.dataset.desc},${r.dataset.amount}\n`);
+                    const link = document.createElement("a");
+                    link.href = encodeURI(csv); link.download = "expenses.csv";
+                    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                    showToast("Export downloaded successfully");
+                });
+            }
+
+            // DELETE ALL LOGIC
+            const btnDeleteAll = document.getElementById('btn-delete-all');
+            if(btnDeleteAll) {
+                btnDeleteAll.addEventListener('click', async () => {
+                    const confirmAction = confirm("Are you sure you want to delete ALL transaction history? This cannot be undone.");
+                    if (!confirmAction) return;
+
+                    const items = document.querySelectorAll('.transaction-item');
+                    if(items.length === 0) return showToast("No transactions to delete.", "error");
+
+                    showToast("Deleting all data...", "error");
+
+                    const deletePromises = Array.from(items).map(item => {
+                        return fetch(`/delete/${item.dataset.id}`);
+                    });
+
+                    try {
+                        await Promise.all(deletePromises);
+                        window.location.reload(); 
+                    } catch (error) {
+                        console.error('Error deleting all:', error);
+                        showToast("An error occurred while deleting.", "error");
+                    }
+                });
+            }
+
+            // Charts
+            const chartData = {
+                catL: JSON.parse('{{ category_labels_json | safe }}'), catV: JSON.parse('{{ category_values_json | safe }}'),
+                payL: JSON.parse('{{ payment_labels_json | safe }}'), payV: JSON.parse('{{ payment_values_json | safe }}'),
+                colors: ['#4CAF50', '#B5E385', '#E0C060', '#124170', '#26667F', '#67C090']
+            };
+            
+            const categoryChart = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                type: 'doughnut', data: { labels: chartData.catL, datasets: [{ data: chartData.catV, backgroundColor: chartData.colors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+            });
+            createCustomLegend(categoryChart, 'categoryChartLegend');
+
+            const paymentMethodChart = new Chart(document.getElementById('paymentMethodChart').getContext('2d'), {
+                type: 'pie', data: { labels: chartData.payL, datasets: [{ data: chartData.payV, backgroundColor: chartData.colors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+            createCustomLegend(paymentMethodChart, 'paymentMethodChartLegend');
+        });
+    </script>
+</body>
+</html>

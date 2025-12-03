@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Edit Expense</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='edit.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="mobile-wrapper">
+  <main class="app-content">
+    <div class="app-page active">
+
+      <!-- HEADER -->
+      <header class="page-header">
+        <a href="{{ url_for('dashboard') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
+        <div class="header-content">
+          <h1>Edit Expense</h1>
+          <p>Update your transaction details</p>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <form method="POST" action="{{ url_for('edit_expense', id=expense.id) }}" class="edit-form">
+
+          <!-- AMOUNT -->
+          <div class="form-group">
+            <label><i class="fas fa-money-bill-wave form-icon"></i> Amount</label>
+            <div class="amount-input-wrapper">
+              <span>₱</span>
+              <input type="number" step="0.01" name="amount" value="{{ expense.amount }}" required>
+            </div>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="form-group">
+            <label><i class="fas fa-align-left form-icon"></i> Description</label>
+            <input type="text" name="description" value="{{ expense.description }}" required maxlength="20">
+          </div>
+
+          <!-- CATEGORY -->
+          <div class="form-group">
+            <label><i class="fas fa-tags form-icon"></i> Category</label>
+            <input type="text" name="categories" value="{{ expense.categories }}" required maxlength="20">
+          </div>
+
+          <!-- PAYMENT METHOD -->
+          <div class="form-group">
+            <label><i class="fas fa-credit-card form-icon"></i> Payment Method</label>
+            <input type="text" name="payment_method" value="{{ expense.payment_method }}" required maxlength="20">
+          </div>
+
+          <!-- DATE -->
+          <div class="form-group">
+            <label><i class="fas fa-calendar-alt form-icon"></i> Date</label>
+            <input type="date" name="date" value="{{ expense.date.strftime('%Y-%m-%d') }}" required>
+          </div>
+
+          <!-- ACTION BUTTONS -->
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-save"></i> Update Expense
+            </button>
+            <!-- This button now triggers the modal -->
+            <a href="{{ url_for('delete_expense', id=expense.id) }}" class="delete-btn" id="delete-link">
+              <i class="fas fa-trash-alt"></i> Delete Expense
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ====================================================== -->
+<!-- NEW: HTML FOR THE DELETE CONFIRMATION MODAL            -->
+<!-- ====================================================== -->
+<div class="modal-overlay" id="delete-confirmation-modal">
+    <div class="modal-content">
+        <h3>Are you sure?</h3>
+        <p>This action cannot be undone. All data for this transaction will be permanently lost.</p>
+        <div class="modal-buttons">
+            <button class="modal-cancel-btn" id="cancel-delete-btn">Cancel</button>
+            <a href="#" class="modal-confirm-btn" id="confirm-delete-btn">Confirm Delete</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Delete Confirmation Modal Logic ---
+    const deleteLink = document.getElementById('delete-link');
+    const modal = document.getElementById('delete-confirmation-modal');
+    const cancelBtn = document.getElementById('cancel-delete-btn');
+    const confirmBtn = document.getElementById('confirm-delete-btn');
+
+    // When the main "Delete" button is clicked
+    deleteLink.addEventListener('click', (e) => {
+        // Prevent the link from navigating immediately
+        e.preventDefault();
+        
+        // Set the final delete URL on the confirmation button
+        confirmBtn.href = deleteLink.href;
+        
+        // Show the modal
+        modal.classList.add('active');
+    });
+
+    // Function to hide the modal
+    const hideModal = () => {
+        modal.classList.remove('active');
+    };
+
+    // Hide modal if "Cancel" is clicked or if the background is clicked
+    cancelBtn.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideModal();
+        }
+    });
+});
+</script>
+
+</body>
+</html>
